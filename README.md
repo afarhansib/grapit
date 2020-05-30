@@ -40,6 +40,6 @@ Untuk mengonfigurasi cron job anda bisa menggunakan cron job bawaan hosting, ata
 
 Saya sendiri menggunakan layanan dari cron-job.org karena pengaturan waktunya lebih fleksibel daripada cron job bawaan hosting saya (000webhost) 
 
-![contoh cron job saya](cronjob.png)
+![contoh cron job saya](images/cronjob.png)
 
 Saya rasa itu sudah semua. Terima kasih.
