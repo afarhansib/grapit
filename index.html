@@ -1,0 +1,449 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+  <title>Progress Peserta</title>
+  <style>
+    td, th {
+      border: 1px solid #000;
+      text-align: left;
+    }
+
+    table {
+      margin: auto;
+      border-collapse: collapse;
+      font-family: sans-serif;
+    }
+
+    th, td {
+      padding: 2px;
+    }
+
+    caption {
+      padding-bottom: 5px;
+      font-weight: bold;
+      font-size: large;
+    }
+
+    tfoot tr:first-child td {
+      padding-top: 5px;
+    }
+
+    tfoot tr, tfoot td {
+      border: none;
+    }
+
+    .vertical {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chart-wrapper" style="overflow: hidden; height: 500px;">
+    <div id="chart_div" style="width: 2000px; height: 1000px; transform: scale(0.5) translate(-60%, -56%);"></div>
+  </div>
+  <div id="upper-line"></div>
+  <div id="under-line"></div>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+  google.load("visualization", "1", { packages: ["corechart"] });
+  google.setOnLoadCallback(init);
+
+  const getData = () => {
+    return new Promise((resolve, reject) => {
+      fetch('data.json')
+        .then(res => res.json())
+        .then(json => resolve(json))
+        .catch(err => reject(err))
+    })
+  }
+
+  const toDateString = time => {
+    let date = new Date(time)
+    let allDate = date.toString().substr(0, 33)
+    let isoDate = date.toISOString().substr(0, 10)
+    return [allDate, allDate.substr(4, 11), isoDate]
+  }
+
+  const getRecommendation = date => {
+    const recommendationList = {
+      "May 8 2020": "2%",
+      "May 8 2020": "4%",
+      "May 8 2020": "6%",
+      "May 8 2020": "7%",
+      "May 9 2020": "9%",
+      "May 10 2020": "11%",
+      "May 11 2020": "12%",
+      "May 12 2020": "14%",
+      "May 13 2020": "16%",
+      "May 14 2020": "17%",
+      "May 15 2020": "19%",
+      "May 16 2020": "19%",
+      "May 17 2020": "21%",
+      "May 17 2020": "23%",
+      "May 18 2020": "24%",
+      "May 18 2020": "26%",
+      "May 19 2020": "28%",
+      "May 20 2020": "29%",
+      "May 21 2020": "31%",
+      "May 22 2020": "33%",
+      "May 23 2020": "34%",
+      "May 24 2020": "36%",
+      "May 24 2020": "38%",
+      "May 25 2020": "39%",
+      "May 26 2020": "41%",
+      "May 26 2020": "43%",
+      "May 27 2020": "45%",
+      "May 28 2020": "46%",
+      "May 28 2020": "48%",
+      "May 29 2020": "50%",
+      "May 30 2020": "51%",
+      "May 30 2020": "53%",
+      "May 31 2020": "55%",
+      "May 31 2020": "56%",
+      "Jun 1 2020": "58%",
+      "Jun 1 2020": "60%",
+      "Jun 1 2020": "62%",
+      "Jun 2 2020": "63%",
+      "Jun 2 2020": "65%",
+      "Jun 3 2020": "67%",
+      "Jun 3 2020": "68%",
+      "Jun 4 2020": "70%",
+      "Jun 5 2020": "72%",
+      "Jun 5 2020": "73%",
+      "Jun 6 2020": "75%",
+      "Jun 7 2020": "77%",
+      "Jun 7 2020": "78%",
+      "Jun 8 2020": "80%",
+      "Jun 8 2020": "82%",
+      "Jun 9 2020": "84%",
+      "Jun 10 2020": "84%",
+      "Jun 11 2020": "85%",
+      "Jun 11 2020": "87%",
+      "Jun 12 2020": "89%",
+      "Jun 12 2020": "90%",
+      "Jun 13 2020": "92%",
+      "Jun 13 2020": "94%",
+      "Jun 14 2020": "95%",
+      "Jun 15 2020": "97%",
+      "Jun 15 2020": "99%",
+      "Jun 16 2020": "100%",
+      "Jun 20 2020": "100%"
+    }
+    return recommendationList[date]
+  }
+
+  const colorPercent = (percent, mid = 95, start = 0, end = 100) => {
+    if (percent === 100) {
+      return (hslToHex(180))
+    }
+    if (percent <= mid) {
+      percent = percent * (50 / mid)
+    } else {
+      percent -= mid
+      let divider = (100 - mid) / 50
+      percent = (percent / divider) + 50
+    }
+    let a = percent / 100
+    let b = (end - start) * a
+    let c = b + start
+
+    return (hslToHex((c).toFixed(2)))
+  }
+
+  function hslToHex(h, s = 100, l = 50) {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+    let r, g, b;
+    if (s === 0) {
+      r = g = b = l; // achromatic
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+    const toHex = x => {
+      const hex = Math.round(x * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  const compare = (a, b) => {
+    let sA = Number(a[0])
+    let sB = Number(b[0])
+    let comparison = 0
+
+    if (sA > sB) {
+      comparison = 1
+    } else if (sA < sB) {
+      comparison = -1
+    }
+
+    return comparison
+  }
+
+  const compareAll = (a, b) => {
+    let sA = Number(a.progress[a.progress.length - 1])
+    let sB = Number(b.progress[b.progress.length - 1])
+    let comparison = 0
+
+    if (sA > sB) {
+      comparison = 1
+    } else if (sA < sB) {
+      comparison = -1
+    }
+
+    return comparison * -1
+  }
+
+  const addZero = num => {
+    return num > 9 ? num : `0${num}`
+  }
+
+  async function init() {
+    window.data = await getData()
+    let dataSorted = []
+    let allDataSorted = data.data
+    allDataSorted.sort(compareAll)
+    let date = toDateString(data.timestamp[data.timestamp.length - 1])
+    let recommendation = getRecommendation(date[1])
+    let dataChart = {
+      date: date[0],
+      recommendation,
+      data: []
+    }
+
+    for (j in data.data) {
+      let tempData = []
+      let progress = data.data[j].progress[data.data[j].progress.length - 1]
+      tempData.push(progress)
+      tempData.push(data.data[j].name)
+      dataSorted.push(tempData)
+    }
+
+    dataSorted.sort(compare)
+
+    for (i in dataSorted) {
+      let tempData = []
+      let progress = dataSorted[i][0]
+      tempData.push(dataSorted[i][1])
+      tempData.push(progress)
+      tempData.push(`color: ${colorPercent(progress, Number(recommendation.slice(0, -1)))}; stroke-color: #444444; stroke-width: 2;`)
+      tempData.push(Number(recommendation.slice(0, -1)))
+      dataChart.data.push(tempData)
+    }
+
+    // morris
+    let dataMorris = {
+      data: [],
+      keys: [],
+      labels: [],
+      lineColors: []
+    }
+    let dataMorris2 = {
+      data: [],
+      keys: [],
+      labels: [],
+      lineColors: []
+    }
+    let dataForMorris = []
+    let dataForMorris2 = []
+
+    for (i in data.timestamp) {
+      let tempObj = {}
+      let tempObj2 = {}
+      tempObj.t = toDateString(data.timestamp[i])[0].substr(4, 17)
+      tempObj2.t = toDateString(data.timestamp[i])[0].substr(4, 17)
+
+      for (j in allDataSorted) {
+        if (allDataSorted[j].progress[allDataSorted[j].progress.length - 1] >= Number(recommendation.slice(0, -1))) {
+          tempObj[allDataSorted[j].tokenid] = allDataSorted[j].progress[i]
+        } else {
+          tempObj2[allDataSorted[j].tokenid] = allDataSorted[j].progress[i]
+        }
+      }
+
+      dataForMorris.push(tempObj)
+      dataForMorris2.push(tempObj2)
+    }
+
+    for (j in allDataSorted) {
+      if (allDataSorted[j].progress[allDataSorted[j].progress.length - 1] >= Number(recommendation.slice(0, -1))) {
+        dataMorris.keys.push(allDataSorted[j].tokenid)
+        dataMorris.labels.push(allDataSorted[j].name)
+        dataMorris.lineColors.push(colorPercent(allDataSorted[j].progress[allDataSorted[j].progress.length - 1], Number(recommendation.slice(0, -1))))
+      } else {
+        dataMorris2.keys.push(allDataSorted[j].tokenid)
+        dataMorris2.labels.push(allDataSorted[j].name)
+        dataMorris2.lineColors.push(colorPercent(allDataSorted[j].progress[allDataSorted[j].progress.length - 1], Number(recommendation.slice(0, -1))))
+      }
+    }
+
+    dataMorris.data = dataForMorris
+    dataMorris2.data = dataForMorris2
+
+    // table
+    let dataTable = {
+      time: data.timestamp.map(e => toDateString(e)[0].substr(4, 17)),
+      recommendation,
+      allData: allDataSorted
+    }
+
+    drawChart(dataChart)
+    initMorris(dataMorris)
+    initMorris2(dataMorris2)
+    writeTable(dataTable)
+  }
+
+  function truncateString(str, num) {
+    if (str.length <= num) {
+      return str
+    }
+    return str.slice(0, num) + '...'
+  }
+
+  function drawChart(dataChart) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Name');
+    data.addColumn('number', 'Progress');
+    data.addColumn({ type: 'string', role: 'style' });
+    data.addColumn('number', 'Rekomendasi');
+
+    data.addRows(dataChart.data);
+
+    var view = new google.visualization.DataView(data);
+    view.setColumns([0, 1, {
+      calc: addPercent,
+      sourceColumn: 1,
+      type: "string",
+      role: "annotation"
+    }, 2, 3]);
+
+    function addPercent(n, i) {
+      return String(n.hg[i].c[1].v) + "%"
+    }
+    var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+
+    chart.draw(view, {
+      title: `Progress Belajar Peserta MPWA Lintasarta \n (${dataChart.date}) \n Rekomendasi: ${dataChart.recommendation}`,
+      subtitle: 'afarhansib',
+      series: {
+        0: {
+          type: 'bars'
+        },
+        2: {
+          type: 'line'
+        }
+      },
+      vAxis: {
+        maxValue: 100
+      },
+      bar: { groupWidth: "100%" },
+      legend: { position: "none" }
+    });
+  }
+
+  function initMorris(dataMorris) {
+    Morris.Line({
+      element: 'upper-line',
+      data: dataMorris.data,
+      lineColors: dataMorris.lineColors,
+      xkey: 't',
+      parseTime: false,
+      smooth: false,
+      postUnits: '%',
+      xLabelAngle: 15,
+      hideHover: 'auto',
+      ykeys: dataMorris.keys,
+      labels: dataMorris.labels
+    })
+  }
+
+  function initMorris2(dataMorris2) {
+    Morris.Line({
+      element: 'under-line',
+      data: dataMorris2.data,
+      lineColors: dataMorris2.lineColors,
+      xkey: 't',
+      parseTime: false,
+      smooth: false,
+      postUnits: '%',
+      xLabelAngle: 15,
+      hideHover: 'auto',
+      ykeys: dataMorris2.keys,
+      labels: dataMorris2.labels
+    })
+  }
+
+  const writeTable = data => {
+    // console.log(data)
+    let tableHTML = `
+      <table>
+        <caption contenteditable>Daftar Progress Peserta MPWA Lintasarta</caption>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            `
+    data.time.forEach(e => {
+      tableHTML += `<th><div class="vertical">${e}</div></th>`
+    })
+    tableHTML += `
+          </tr>
+        </thead>
+        <tbody>`
+
+    for (i in data.allData) {
+      tableHTML += `
+            <tr>
+            <td>${Number(i) + 1}</td>
+            <td>${data.allData[i].name}</td>
+            `
+      data.allData[i].progress.forEach(e => {
+        tableHTML += `
+              <td style="background-color:${colorPercent(e, Number(data.recommendation.slice(0, -1)))};">${e}</td>
+              `
+      })
+      tableHTML += `
+            </tr>`
+
+    }
+
+    tableHTML += `
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">Update</td>
+            <td>: ${data.time[data.time.length - 1]}</td>
+          </tr>
+          <tr>
+            <td colspan="2">Rekomendasi</td>
+            <td>: ${data.recommendation}</td>
+          </tr>
+        </tfoot>
+      </table>
+    `
+
+    document.body.insertAdjacentHTML('afterbegin', tableHTML)
+  }
+  </script>
+</body>
+
+</html>
