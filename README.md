@@ -3,7 +3,7 @@
 Grapit (graph it) adalah script php sederhana yang berfungsi untuk mengambil data dari Dicoding dan memformatnya dalam bentuk chart.  Berikut adalah penjelasan singkat bagaimana menggunakan script ini.
 
 ## Instalasi
-Untuk menginstalnya cukup clone project ini, kemudian upload ke sebuah php hosting yang mengizinkan Access-Control-Allow-Origin nya dimodifikasi, contoh web hosting gratis yang sudah saya coba adalah 000webhost.com.
+Untuk menginstalnya cukup clone project ini, kemudian upload ke sebuah php hosting yang mengizinkan Access-Control-Allow-Origin nya dimodifikasi, contoh web hosting gratis yang sudah saya coba adalah [000webhost.com](https://000webhost.com).
 
 ## Setup
 
@@ -38,7 +38,7 @@ Langkah ini opsional,  jika Anda mau mendapatkan data secara rutin (misalnya set
 
 Untuk mengonfigurasi cron job anda bisa menggunakan cron job bawaan hosting, atau menggunakan layanan cron job eksternal.
 
-Saya sendiri menggunakan layanan dari cron-job.org karena pengaturan waktunya lebih fleksibel daripada cron job bawaan hosting saya (000webhost) 
+Saya sendiri menggunakan layanan dari [cron-job.org](https://cron-job.org) karena pengaturan waktunya lebih fleksibel daripada cron job bawaan hosting saya (000webhost) 
 
 ![contoh cron job saya](images/cronjob.png)
 
